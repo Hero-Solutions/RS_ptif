@@ -1,6 +1,6 @@
-# ImageHub
+# ResourceSpace PTIF
 
-This project contains a ResourceSpace plugin to generate Tiled Pyramidal TIFF files when uploading a new image.
+This project contains a ResourceSpace plugin to generate Tiled Pyramidal TIFF files when uploading a new image, either through manual upload or through the ResourceSpace API.
 
 ## Requirements
 
