@@ -53,15 +53,20 @@
 
     function executeConversion($command, $sourcePath, $destPath)
     {
-        if(strpos($command['command'], 'vips') > -1) {
-            # vips requires the arguments to be appended to the target filename, separated with ':'
-            $cmd = $command['command'] . ' ' . escapeshellarg($sourcePath) . ' ' . escapeshellarg($destPath) . ':' . $command['arguments'];
-        } else if(in_array('prefix', $command)) {
-            # convert requires the prefix ptif: in order to convert to Tiled Pyramidal TIFFs
-            $cmd = $command['command'] . ' ' . $command['arguments'] . ' ' . $command['prefix'] . escapeshellarg($sourcePath) . ' ' . escapeshellarg($destPath);
-        } else {
-            $cmd = $command['command'] . ' ' . $command['arguments'] . ' ' . escapeshellarg($sourcePath) . ' ' . escapeshellarg($destPath);
+        $destPath = escapeshellarg($destPath);
+        if(in_array('prefix', $command)) {
+            $destPath = $command['prefix'] . $destPath;
         }
+        if(in_array('postfix', $command)) {
+            $destPath = $destPath . $command['postfix'];
+        }
+
+        $sourcePath = escapeshellarg($sourcePath);
+        if(in_array('arguments', $command)) {
+            $sourcePath = $command['arguments'] . ' ' . $sourcePath;
+        }
+
+        $cmd = $command['command'] . ' ' . $sourcePath . ' ' . $destPath;
 
         $output = run_command($cmd);
     }
