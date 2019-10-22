@@ -5,8 +5,8 @@ This project contains a ResourceSpace plugin to generate Tiled Pyramidal TIFF fi
 ## Requirements
 
 This project requires following dependencies:
-* ResourceSpace >= 9.1
-* convert or vips (or both), depending on which image conversion tool you need to use, as defined in the config below
+* [ResourceSpace](https://www.resourcespace.com/get) >= 9.1
+* The command-line tools [convert](https://imagemagick.org/) or [vips](https://github.com/libvips/libvips) (possibly both), depending on which image conversion tool you need to use, as defined in the config below
 
 # Usage
 
