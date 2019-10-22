@@ -1,5 +1,5 @@
 <?php
-    # Generate Tiled Pyramidal TIFF files when uploading a new image
+    # This plugin generates Tiled Pyramidal TIFF files when uploading a new image
 
     # Return the path '/filestore/iiif/$ref.tif' to store PTIF files in when uploading a new image
     function getPtifFilePath($ref)
@@ -15,15 +15,17 @@
     function HookIiif_ptifAllBeforedeleteresourcefromdb($ref)
     {
       	$path = getPtifFilePath($ref);
-		if(file_exists($path)) {
-			unlink($path);
-		}
+        if(file_exists($path)) {
+    	   unlink($path);
+        }
     }
 
     function HookIiif_ptifAllUploadfilesuccess($resourceId)
     {
         global $iiif_ptif_commands;
-        $extension = sql_value("select file_extension value from resource where ref = '" . escape_check($resourceId) . "'", 'tif');
+
+        # Get the path to the original image. We need to select the extension from the database for this
+        $extension = sql_value("SELECT file_extension value FROM resource WHERE ref = '" . escape_check($resourceId) . "'", 'tif');
         $sourcePath = get_resource_path($resourceId, true, '', true, $extension);
         $destPath = getPtifFilePath($resourceId);
 
@@ -63,7 +65,5 @@
 
         $output = run_command($cmd);
     }
-
-
 
 ?>
