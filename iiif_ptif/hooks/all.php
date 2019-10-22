@@ -22,26 +22,47 @@
 
     function HookIiif_ptifAllUploadfilesuccess($resourceId)
     {
-        global $lang, $iiif_ptif_command, $iiif_ptif_arguments;
+        global $iiif_ptif_commands;
         $extension = sql_value("select file_extension value from resource where ref = '" . escape_check($resourceId) . "'", 'tif');
         $sourcePath = get_resource_path($resourceId, true, '', true, $extension);
         $destPath = getPtifFilePath($resourceId);
 
-        if(strpos($iiif_ptif_command, 'vips') > -1) {
-            global $iiif_ptif_options;
-            $command = $iiif_ptif_command . ' ' . escapeshellarg($sourcePath) . ' ' . escapeshellarg($destPath) . ':' . $iiif_ptif_arguments;
-        } else {
-            global $iiif_ptif_prefix;
-            $command = $iiif_ptif_command . ' ' . $iiif_ptif_arguments . ' ' . $iiif_ptif_prefix . escapeshellarg($sourcePath) . ' ' . escapeshellarg($destPath);
+        $catchallCommand = null;
+        $processed = false;
+
+        # Loop through the list of available conversion commands
+        foreach($iiif_ptif_commands as $command) {
+            # Find the catchall command
+            if(in_array('*', $command['extensions'])) {
+                $catchallCommand = $command;
+            }
+            # Find the appropriate command based on the extension
+            else if(in_array($extension, $command['extensions'])) {
+                $processed = true;
+                executeConversion($command, $sourcePath, $destPath);
+            }
         }
 
-        $output = run_command($command);
-
-        log_activity($lang['resourcetypefieldreordered'],LOG_CODE_REORDERED,'Path = ' . $sourcePath . ', dest ' . $destPath,'resource_type_field','order_by');
-
-        log_activity($lang['resourcetypefieldreordered'],LOG_CODE_REORDERED,'Command = ' . $command,'resource_type_field','order_by');
+        # If no appropriate command was found based on the extension, use the catchall command
+        if(!$processed) {
+            executeConversion($catchallCommand, $sourcePath, $destPath);
+        }
     }
 
+    function executeConversion($command, $sourcePath, $destPath)
+    {
+        if(strpos($command['command'], 'vips') > -1) {
+            # vips requires the arguments to be appended to the target filename, separated with ':'
+            $cmd = $command['command'] . ' ' . escapeshellarg($sourcePath) . ' ' . escapeshellarg($destPath) . ':' . $command['arguments'];
+        } else if(in_array('prefix', $command)) {
+            # convert requires the prefix ptif: in order to convert to Tiled Pyramidal TIFFs
+            $cmd = $command['command'] . ' ' . $command['arguments'] . ' ' . $command['prefix'] . escapeshellarg($sourcePath) . ' ' . escapeshellarg($destPath);
+        } else {
+            $cmd = $command['command'] . ' ' . $command['arguments'] . ' ' . escapeshellarg($sourcePath) . ' ' . escapeshellarg($destPath);
+        }
+
+        $output = run_command($cmd);
+    }
 
 
 
