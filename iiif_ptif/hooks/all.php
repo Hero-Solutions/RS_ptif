@@ -1,36 +1,7 @@
 <?php
     # This plugin generates Tiled Pyramidal TIFF files when uploading a new image
 
-    # Return the path '/filestore/iiif/$ref.tif' to store PTIF files in when uploading a new image
-    function getPtifFilePath($ref)
-    {
-        global $storagedir, $iiif_ptif_filestore, $iiif_ptif_public_key, $iiif_ptif_public_value, $iiif_ptif_public_folder, $iiif_ptif_private_folder;
-
-        $data = get_resource_field_data($ref);
-        $public = false;
-        foreach($data as $index => $field) {
-            if($field['name'] == $iiif_ptif_public_key && strpos($field['value'], $iiif_ptif_public_value) > -1) {
-                $public = true;
-                break;
-            }
-        }
-
-        $dir = $storagedir . $iiif_ptif_filestore . ($public ? $iiif_ptif_public_folder : $iiif_ptif_private_folder);
-        if(!file_exists($dir)) {
-            mkdir($dir);
-        }
-        return $dir . $ref . '.tif';
-    }
-
-    # Delete any generated PTIF files associated with this resource when the resource is being deleted
-    function HookIiif_ptifAllBeforedeleteresourcefromdb($ref)
-    {
-        $path = getPtifFilePath($ref);
-        if(file_exists($path)) {
-           unlink($path);
-        }
-    }
-
+    # Convert image to PTIF after the upload is successful
     function HookIiif_ptifAllUploadfilesuccess($resourceId)
     {
         global $iiif_ptif_commands;
@@ -62,17 +33,51 @@
         }
     }
 
+    # Return the path where to store PTIF files in when uploading a new image
+    function getPtifFilePath($ref)
+    {
+        global $storagedir, $iiif_ptif_filestore, $iiif_ptif_public_key, $iiif_ptif_public_value, $iiif_ptif_public_folder, $iiif_ptif_private_folder;
+
+        # Determine if this image should be made publicly available or not
+        $public = false;
+        if($iiif_ptif_public_key != NULL && $iiif_ptif_public_folder != null) {
+            $data = get_resource_field_data($ref);
+            foreach($data as $index => $field) {
+                if($field['name'] == $iiif_ptif_public_key && strpos($field['value'], $iiif_ptif_public_value) > -1) {
+                    $public = true;
+                    break;
+                }
+            }
+        }
+
+        $dir = $storagedir . $iiif_ptif_filestore . ($public ? $iiif_ptif_public_folder : $iiif_ptif_private_folder);
+
+        # Create the directory to store the PTIF image if it does not yet exist
+        if(!file_exists($dir)) {
+            mkdir($dir, 0777, true);
+        }
+
+        return $dir . $ref . '.tif';
+    }
+
+    # Execute the actual image conversion
     function executeConversion($command, $sourcePath, $destPath)
     {
         $destPath = escapeshellarg($destPath);
+
+        # Append prefix to the output filename if needed
         if(in_array('prefix', $command)) {
             $destPath = $command['prefix'] . $destPath;
         }
+
+        # Append postfix to the output filename if needed
         if(in_array('postfix', $command)) {
             $destPath = $destPath . $command['postfix'];
         }
 
         $sourcePath = escapeshellarg($sourcePath);
+
+        # Append the arguments to the command
         if(in_array('arguments', $command)) {
             $sourcePath = $command['arguments'] . ' ' . $sourcePath;
         }
@@ -82,4 +87,14 @@
         $output = run_command($cmd);
     }
 
+    # Delete any generated PTIF files associated with this resource when the resource is being deleted
+    # Requires $resource_deletion_state to be set to NULL due to a bug in ResourceSpace where nothing is actually deleted otherwise
+    # This bug resides in include/resource_functions.php:2015.
+    function HookIiif_ptifAllBeforedeleteresourcefromdb($ref)
+    {
+        $path = getPtifFilePath($ref);
+        if(file_exists($path)) {
+           unlink($path);
+        }
+    }
 ?>
