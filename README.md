@@ -18,7 +18,7 @@ In order to make use of this plugin, the ``iiif_ptif/`` folder should be copied 
 
 Also make sure that the webserver (for example www-data) has full write access to this plugin folder, so chmod and/or chown the directory if needed.
 
-The following lines should be added to the configuration file of your ResourceSpace installation (include/config.php). You can edit these according to your own preferences:
+The following lines should be added to the configuration file of your ResourceSpace installation ``include/config.php``. You can edit these according to your own preferences:
 
 ```
 # Config values required by the iiif_ptif plugin.
