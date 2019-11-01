@@ -2,7 +2,7 @@
 
 This project contains a ResourceSpace plugin to generate Tiled Pyramidal TIFF files when uploading a new image. This plugin is called when manually uploading an image or when an image is uploaded through the ResourceSpace API.
 
-This plugin is highly configurable, you can choose where the PTIF files are to be stored relative to the filestore/ directory of your ResourceSpace installation, what metadata field to use to determine which images can be made publicly available and what command(s) to use for conversion based on the extension of the uploaded file.
+Th plugin is highly configurable, you can choose where the PTIF files are to be stored relative to the filestore/ directory of your ResourceSpace installation, what metadata field to use to determine which images can be made publicly available and what command(s) to use for conversion based on the extension of the uploaded file.
 
 There is also an optional configuration value '$resource_deletion_state = NULL;', necessary to work around a bug in ResourceSpace where images (as well as the generated PTIF) are not properly deleted when deleting a resource.
 
