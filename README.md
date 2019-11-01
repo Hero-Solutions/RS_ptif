@@ -4,7 +4,7 @@ This project contains a ResourceSpace plugin to generate Tiled Pyramidal TIFF fi
 
 Th plugin is highly configurable, you can choose where the PTIF files are to be stored relative to the filestore/ directory of your ResourceSpace installation, what metadata field to use to determine which images can be made publicly available and what command(s) to use for conversion based on the extension of the uploaded file.
 
-There is also an optional configuration value '$resource_deletion_state = NULL;', necessary to work around a bug in ResourceSpace where images (as well as the generated PTIF) are not properly deleted when deleting a resource.
+There is also an optional configuration value ``$resource_deletion_state = NULL;``, necessary to work around a bug in ResourceSpace where images (as well as the generated PTIF) are not properly deleted when deleting a resource.
 
 ## Requirements
 
@@ -14,7 +14,7 @@ This project requires following dependencies:
 
 # Usage
 
-In order to make use of this plugin, the iiif_ptif/ folder should be copied to the plugins/ folder of your ResourceSpace installation and activated by the system administrator (System -> Manage plugins, under the 'System' plugins). Also make sure that the webserver (for example www-data) has full write access to this plugin folder, so chmod and/or chown the directory if needed.
+In order to make use of this plugin, the ``iiif_ptif/`` folder should be copied to the ``plugins/`` folder of your ResourceSpace installation and activated by the system administrator (System -> Manage plugins, under the 'System' plugins). Also make sure that the webserver (for example www-data) has full write access to this plugin folder, so chmod and/or chown the directory if needed.
 
 The following lines should be added to the configuration file of your ResourceSpace installation (include/config.php). You can edit these according to your own preferences:
 
