@@ -4,19 +4,30 @@
     # Return the path '/filestore/iiif/$ref.tif' to store PTIF files in when uploading a new image
     function getPtifFilePath($ref)
     {
-        global $storagedir, $iiif_ptif_filestore;
-        if(!file_exists($storagedir . $iiif_ptif_filestore)) {
-            mkdir($storagedir . $iiif_ptif_filestore);
+        global $storagedir, $iiif_ptif_filestore, $iiif_ptif_public_key, $iiif_ptif_public_value, $iiif_ptif_public_folder, $iiif_ptif_private_folder;
+
+        $data = get_resource_field_data($ref);
+        $public = false;
+        foreach($data as $index => $field) {
+            if($field['name'] == $iiif_ptif_public_key && strpos($field['value'], $iiif_ptif_public_value) > -1) {
+                $public = true;
+                break;
+            }
         }
-        return $storagedir . $iiif_ptif_filestore . $ref . '.tif';
+
+        $dir = $storagedir . $iiif_ptif_filestore . ($public ? $iiif_ptif_public_folder : $iiif_ptif_private_folder);
+        if(!file_exists($dir)) {
+            mkdir($dir);
+        }
+        return $dir . $ref . '.tif';
     }
 
     # Delete any generated PTIF files associated with this resource when the resource is being deleted
     function HookIiif_ptifAllBeforedeleteresourcefromdb($ref)
     {
-      	$path = getPtifFilePath($ref);
+        $path = getPtifFilePath($ref);
         if(file_exists($path)) {
-    	   unlink($path);
+           unlink($path);
         }
     }
 

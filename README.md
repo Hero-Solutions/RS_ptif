@@ -17,10 +17,25 @@ The following lines should be added to the configuration file of your ResourceSp
 ```
 # Config values required by the iiif_ptif plugin.
 
+# This must be set to NULL in order to fix a bug within ResourceSpace
+# where resource files are not properly deleted if this value is set to anything other than NULL.
+# This bug resides in include/resource_functions.php:2015.
+$resource_deletion_state = NULL;
+
+
+# Config values required by the iiif_ptif plugin.
+
 # Name of the folder where the ptif files are stored (relative to the filestore/ directory).
 # Must contain a leading and trailing slash.
 $iiif_ptif_filestore = '/iiif_ptif/';
 
+# Key and value to determine which images are cleared for public use
+$iiif_ptif_public_key = 'clearedforusage';
+$iiif_ptif_public_value = 'Public use';
+
+# Folders to store public and private images
+$iiif_ptif_public_folder = 'public/';
+$iiif_ptif_private_folder = 'private/';
 
 # CLI Commands to perform image conversion to PTIF.
 # 'extensions' defines a list of file extensions and the command that should be used to convert images with these extensions to PTIF.
