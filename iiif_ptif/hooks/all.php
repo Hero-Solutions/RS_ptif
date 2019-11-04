@@ -34,23 +34,19 @@
     }
 
     # Return the path where to store PTIF files in when uploading a new image
-    function getPtifFilePath($ref)
+    function getPtifFilePath($ref, $forcedFolder = NULL)
     {
-        global $storagedir, $iiif_ptif_filestore, $iiif_ptif_public_key, $iiif_ptif_public_value, $iiif_ptif_public_folder, $iiif_ptif_private_folder;
+        global $storagedir, $iiif_ptif_filestore, $iiif_ptif_public_folder, $iiif_ptif_private_folder;
 
-        # Determine if this image should be made publicly available or not
-        $public = false;
-        if($iiif_ptif_public_key != NULL && $iiif_ptif_public_folder != null) {
-            $data = get_resource_field_data($ref);
-            foreach($data as $index => $field) {
-                if($field['name'] == $iiif_ptif_public_key && strpos($field['value'], $iiif_ptif_public_value) > -1) {
-                    $public = true;
-                    break;
-                }
-            }
+        $dir = $storagedir . $iiif_ptif_filestore;
+
+        if($forcedFolder != NULL) {
+            $dir .= $forcedFolder;
+        } else if(isPublicImage($ref)) {
+            $dir .= $iiif_ptif_public_folder;
+        } else {
+            $dir .= $iiif_ptif_private_folder;
         }
-
-        $dir = $storagedir . $iiif_ptif_filestore . ($public ? $iiif_ptif_public_folder : $iiif_ptif_private_folder);
 
         # Create the directory to store the PTIF image if it does not yet exist
         if(!file_exists($dir)) {
@@ -58,6 +54,30 @@
         }
 
         return $dir . $ref . '.tif';
+    }
+
+    # Determine if this image should be made publicly available or not
+    function isPublicImage($ref)
+    {
+        global $iiif_ptif_public_key, $iiif_ptif_public_value, $iiif_ptif_public_folder;
+
+        $public = false;
+        if($iiif_ptif_public_key != NULL && $iiif_ptif_public_folder != null) {
+            $data = get_resource_field_data($ref);
+
+            foreach($data as $field) {
+                if ($field['name'] == $iiif_ptif_public_key) {
+                    $expl = explode(',', $field['value']);
+                    foreach ($expl as $val) {
+                        if ($val == $iiif_ptif_public_value) {
+                            $public = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return $public;
     }
 
     # Execute the actual image conversion
@@ -95,6 +115,45 @@
         $path = getPtifFilePath($ref);
         if(file_exists($path)) {
             unlink($path);
+        }
+    }
+
+    # Renders clickable URL's to IIIF viewers above the preview image when opening a resource
+    # Configure the $iiif_ptif_viewers field in config.php to generate appropriate URL's
+    function HookIiif_ptifAllRenderbeforeresourceview($resource)
+    {
+        global $iiif_ptif_viewers;
+
+        if(isset($iiif_ptif_viewers)) {
+            foreach($iiif_ptif_viewers as $key => $viewer) {
+                $url = str_replace('{ref}', $resource['ref'] . '.tif', $viewer);
+                $file_headers = @get_headers($url);
+                if(!$file_headers || $file_headers[0] == 'HTTP/1.1 404 Not Found') {
+                    echo '<p>There is currently no working link to ' . $key . ' yet.</p>';
+                }
+                else {
+                    echo '<p><a href=' . $url . '>View in' . $key . '</a></p>';
+                }
+            }
+        }
+    }
+
+    # In case the public use field has updated, move the PTIF to the correct subdirectory
+    # WARNING: does NOT trigger when a field is edited through the ResourceSpace API!!
+    function HookIiif_ptifAllAftersaveresourcedata($ref, $nodes_to_add, $nodes_to_remove, $autosave_field)
+    {
+        global $iiif_ptif_public_folder, $iiif_ptif_private_folder;
+
+        if(isPublicImage($ref)) {
+            $oldFile = getPtifFilePath($ref, $iiif_ptif_private_folder);
+            if(file_exists($oldFile)) {
+                rename($oldFile, getPtifFilePath($ref));
+            }
+        } else {
+            $oldFile = getPtifFilePath($ref, $iiif_ptif_public_folder);
+            if(file_exists($oldFile)) {
+                rename($oldFile, getPtifFilePath($ref));
+            }
         }
     }
 ?>
