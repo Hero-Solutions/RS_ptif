@@ -94,7 +94,7 @@
     {
         $path = getPtifFilePath($ref);
         if(file_exists($path)) {
-           unlink($path);
+            unlink($path);
         }
     }
 ?>
