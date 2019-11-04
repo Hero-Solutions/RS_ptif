@@ -21,15 +21,19 @@ Also make sure that the webserver (for example www-data) has full write access t
 The following lines should be added to the configuration file of your ResourceSpace installation ``include/config.php``. You can edit these according to your own preferences:
 
 ```
-# Config values required by the iiif_ptif plugin.
-
-# This should be set to NULL in order to fix a bug within ResourceSpace
+# This must be set to NULL in order to fix a bug within ResourceSpace
 # where resource files are not properly deleted if this value is set to anything other than NULL.
 # This bug resides in include/resource_functions.php:2015.
 $resource_deletion_state = NULL;
 
 
 # Config values required by the iiif_ptif plugin.
+
+# Clickable URL's to be shown above the preview image
+$iiif_ptif_viewers = array(
+    'Universal Viewer' => 'https://universalviewer.kmska.be/?manifestUrl=https://imagehub.kmska.be/public/iiif/2/{ref}/manifest.json',
+    'Mirador'          => 'https://mirador.kmska.be/?manifestUrl=https://imagehub.kmska.be/public/iiif/2/{ref}/manifest.json'
+);
 
 # Name of the folder where the ptif files are stored (relative to the filestore/ directory).
 # Must contain a leading and trailing slash.
@@ -72,5 +76,4 @@ $iiif_ptif_commands = array(
         'postfix' => ':jpeg:100,tile:256x256,pyramid'
     )
 );
-
 ```
