@@ -139,8 +139,23 @@
     }
 
     # In case the public use field has updated, move the PTIF to the correct subdirectory
-    # WARNING: does NOT trigger when a field is edited through the ResourceSpace API!!
+    # WARNING: does not trigger when a field is edited through the ResourceSpace API
     function HookIiif_ptifAllAftersaveresourcedata($ref, $nodes_to_add, $nodes_to_remove, $autosave_field)
+    {
+        movePtifToCorrectFolder($ref);
+    }
+
+    # A hackish way to move the PTIF to the correct subdirectory in case the public use field has updated through the API,
+    # the application that performed the API call should perform a do_search call after, which will trigger this function
+    function HookIiif_ptifAllBeforereturnresults($result, $archive)
+    {
+        foreach($result as $resource) {
+            movePtifToCorrectFolder($resource['ref']);
+        }
+    }
+
+    # Move the PTIF to the correct public/private folder if needed
+    function movePtifToCorrectFolder($ref)
     {
         global $iiif_ptif_public_folder, $iiif_ptif_private_folder;
 
@@ -155,5 +170,6 @@
                 rename($oldFile, getPtifFilePath($ref));
             }
         }
+
     }
 ?>
