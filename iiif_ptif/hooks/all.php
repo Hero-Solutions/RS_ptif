@@ -5,6 +5,7 @@
     function HookIiif_ptifAllUploadfilesuccess($resourceId)
     {
         global $iiif_ptif_commands;
+                log_activity(null,LOG_CODE_CREATED,'LLALALAAL','resource_type_field','title','bleh',null,'');
 
         # Get the path to the original image. We need to select the extension from the database for this
         $extension = sql_value("SELECT file_extension value FROM resource WHERE ref = '" . escape_check($resourceId) . "'", 'tif');
@@ -104,7 +105,7 @@
 
         $cmd = $command['command'] . ' ' . $sourcePath . ' ' . $destPath;
 
-        $output = run_command($cmd);
+        run_command($cmd);
     }
 
     # Delete any generated PTIF files associated with this resource when the resource is being deleted
@@ -115,26 +116,6 @@
         $path = getPtifFilePath($ref);
         if(file_exists($path)) {
             unlink($path);
-        }
-    }
-
-    # Renders clickable URL's to IIIF viewers above the preview image when opening a resource
-    # Configure the $iiif_ptif_viewers field in config.php to generate appropriate URL's
-    function HookIiif_ptifAllRenderbeforeresourceview($resource)
-    {
-        global $iiif_ptif_viewers;
-
-        if(isset($iiif_ptif_viewers)) {
-            foreach($iiif_ptif_viewers as $key => $viewer) {
-                $url = str_replace('{ref}', $resource['ref'] . '.tif', $viewer);
-                $file_headers = @get_headers($url);
-                if(!$file_headers || $file_headers[0] == 'HTTP/1.1 404 Not Found') {
-                    echo '<p>There is currently no working link to ' . $key . ' yet.</p>';
-                }
-                else {
-                    echo '<p><a href=' . $url . '>View in' . $key . '</a></p>';
-                }
-            }
         }
     }
 
