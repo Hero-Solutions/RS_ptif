@@ -26,14 +26,22 @@ The following lines should be added to the configuration file of your ResourceSp
 # This bug resides in include/resource_functions.php:2015.
 $resource_deletion_state = NULL;
 
+# Config values required by the iiif_imagehub plugin.
 
-# Config values required by the iiif_ptif plugin.
+$iiif_imagehub_commands = array(
+    '/home/mike/Documents/kmska/ImageHub/bin/console app:datahub-to-resourcespace {ref}',
+    '/home/mike/Documents/kmska/ImageHub/bin/console app:generate-iiif-manifests {ref}'
+);
+
+$iiif_imagehub_manifest_url = 'https://imagehub.kmska.be/public/iiif/2/{ref}/manifest.json';
 
 # Clickable URL's to be shown above the preview image
-$iiif_ptif_viewers = array(
+$iiif_imagehub_viewers = array(
     'Universal Viewer' => 'https://universalviewer.kmska.be/?manifestUrl=https://imagehub.kmska.be/public/iiif/2/{ref}/manifest.json',
     'Mirador'          => 'https://mirador.kmska.be/?manifestUrl=https://imagehub.kmska.be/public/iiif/2/{ref}/manifest.json'
 );
+
+# Config values required by the iiif_ptif plugin.
 
 # Name of the folder where the ptif files are stored (relative to the filestore/ directory).
 # Must contain a leading and trailing slash.
@@ -76,4 +84,5 @@ $iiif_ptif_commands = array(
         'postfix' => ':jpeg:100,tile:256x256,pyramid'
     )
 );
+
 ```
