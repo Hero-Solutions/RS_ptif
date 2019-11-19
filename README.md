@@ -37,8 +37,8 @@ $iiif_imagehub_manifest_url = 'https://imagehub.kmska.be/public/iiif/2/{ref}/man
 
 # Clickable URL's to be shown above the preview image
 $iiif_imagehub_viewers = array(
-    'Universal Viewer' => 'https://universalviewer.kmska.be/?manifestUrl=https://imagehub.kmska.be/public/iiif/2/{ref}/manifest.json',
-    'Mirador'          => 'https://mirador.kmska.be/?manifestUrl=https://imagehub.kmska.be/public/iiif/2/{ref}/manifest.json'
+    'Universal Viewer' => 'https://universalviewer.kmska.be/?manifestUrl={manifest_url}',
+    'Mirador'          => 'https://mirador.kmska.be/?manifestUrl={manifest_url}'
 );
 
 # Config values required by the iiif_ptif plugin.
