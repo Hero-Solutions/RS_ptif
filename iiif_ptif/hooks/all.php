@@ -87,13 +87,13 @@
         $destPath = escapeshellarg($destPath);
 
         # Append prefix to the output filename if needed
-        if(in_array('prefix', $command)) {
-            $destPath = $command['prefix'] . $destPath;
+        if(in_array('dest_prefix', $command)) {
+            $destPath = $command['dest_prefix'] . $destPath;
         }
 
         # Append postfix to the output filename if needed
-        if(in_array('postfix', $command)) {
-            $destPath = $destPath . $command['postfix'];
+        if(in_array('dest_postfix', $command)) {
+            $destPath = $destPath . $command['dest_postfix'];
         }
 
         $sourcePath = escapeshellarg($sourcePath);
