@@ -14,7 +14,7 @@ This project requires the following dependencies:
 
 # Usage
 
-In order to make use of this plugin, the ``iiif_ptif/`` and ``iiif_imagehub/`` folders should be copied to the ``plugins/`` folder of your ResourceSpace installation and activated by the system administrator (System -> Manage plugins, then expand the 'System' plugins and select the iiif_ptif/iiif_imagehub plugins).
+In order to make use of this plugin, the ``iiif_ptif/`` and ``iiif_imagehub/`` folders should be copied to the ``plugins/`` folder of your ResourceSpace installation and activated by the system administrator (System -> Manage plugins, then expand the 'System' plugins and select the iiif_ptif and iiif_imagehub plugins).
 
 Also make sure that the webserver (for example www-data) has full write access to this plugin folder, so chmod and/or chown the directory if needed.
 
