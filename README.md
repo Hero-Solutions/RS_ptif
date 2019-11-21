@@ -18,7 +18,7 @@ In order to make use of this plugin, the ``iiif_ptif/`` and ``iiif_imagehub/`` f
 
 Also make sure that the webserver (for example www-data) has full write access to this plugin folder, so chmod and/or chown the each plugin directory if needed.
 
-The following lines should be added to the configuration file of your ResourceSpace installation ``include/config.php``. You can edit these according to your own preferences:
+The following lines should be added to the configuration file of your ResourceSpace installation (include/config.php). You can alter the values as needed for your particular setup.
 
 ```
 # This must be set to NULL in order to fix a bug within ResourceSpace
