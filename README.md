@@ -1,8 +1,8 @@
 # ResourceSpace PTIF
 
-This project contains two ResourceSpace plugin to generate Tiled Pyramidal TIFF files and execute one or more commands when uploading a new image. These plugins are called when manually uploading an image or when an image is uploaded through the ResourceSpace API. The order in which the plugins are called are determined by the ``default_priority`` setting in the yaml file of each plugin (lower value = higher priority). Normally we want to execute the iiif_imagehub commands *after* generating our PTIF file.
+This project contains a ResourceSpace plugin to generate Tiled Pyramidal TIFF files and execute one or more commands when uploading a new image. This plugin is called when manually uploading an image or when an image is uploaded through the ResourceSpace API.
 
-Both plugins are highly configurable, you can choose where the PTIF files are to be stored relative to the filestore/ directory of your ResourceSpace installation, what metadata field to use to determine which images can be made publicly available and what command(s) to use for conversion based on the extension of the uploaded file. You can also specify any commands to be executed after the image is uploaded.
+The plugin is highly configurable, you can choose where the PTIF files are to be stored relative to the filestore/ directory of your ResourceSpace installation, what metadata field to use to determine which images can be made publicly available and what command(s) or cUrl call(s) to use for conversion based on the extension of the uploaded file. You can also specify any commands to be executed after the image is uploaded.
 
 There is also an optional configuration value ``$resource_deletion_state = NULL;``, necessary to work around a bug in ResourceSpace where images (as well as the generated PTIF) are not properly deleted when deleting a resource.
 
@@ -14,7 +14,7 @@ This project requires the following dependencies:
 
 # Usage
 
-In order to make use of this plugin, the ``iiif_ptif/`` and ``iiif_imagehub/`` folders should be copied to the ``plugins/`` folder of your ResourceSpace installation and activated by the system administrator (System -> Manage plugins, then expand the 'System' plugins and select the iiif_ptif and iiif_imagehub plugins).
+In order to make use of this plugin, the ``iiif_ptif/`` folder should be copied to the ``plugins/`` folder of your ResourceSpace installation and activated by the system administrator (System -> Manage plugins, then expand the 'System' plugins and select the iiif_ptif plugin).
 
 Also make sure that the webserver (for example www-data) has full write access to this plugin folder, so chmod and/or chown the each plugin directory if needed.
 
@@ -28,8 +28,6 @@ Add the following lines to the configuration file of your ResourceSpace installa
 # This bug resides in include/resource_functions.php:2015.
 $resource_deletion_state = NULL;
 
-
-# Config values required by the iiif_imagehub plugin.
 
 # You can use either $iiif_imagehub_commands if the Imagehub is locally installed
 # or $iiif_imagehub_curl_calls if the Imagehub is installed remotely
@@ -60,8 +58,6 @@ $iiif_imagehub_viewers = array(
     'Mirador V3'       => 'https://imagehub.kmska.be/mirador/3/index.php?manifest={manifest_url}'
 );
 
-
-# Config values required by the iiif_ptif plugin.
 
 # Name of the folder where the ptif files are stored (relative to the filestore/ directory).
 # Must contain a leading and trailing slash.

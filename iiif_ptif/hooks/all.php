@@ -5,7 +5,6 @@
     function HookIiif_ptifAllUploadfilesuccess($resourceId)
     {
         global $iiif_ptif_commands;
-                log_activity(null,LOG_CODE_CREATED,'LLALALAAL','resource_type_field','title','bleh',null,'');
 
         # Get the path to the original image. We need to select the extension from the database for this
         $extension = sql_value("SELECT file_extension value FROM resource WHERE ref = '" . escape_check($resourceId) . "'", 'tif');
@@ -32,6 +31,8 @@
         if(!$processed) {
             executeConversion($catchallCommand, $sourcePath, $destPath);
         }
+
+        executeImagehubCommands($resourceId);
     }
 
     # Return the path where to store PTIF files in when uploading a new image
@@ -108,6 +109,31 @@
         run_command($cmd);
     }
 
+    # Perform either command line or cURL calls to the Imagehub to import data from the datahub and generate IIIF manifests
+    function executeImagehubCommands($resourceId)
+    {
+        global $iiif_imagehub_commands, $iiif_imagehub_curl_calls;
+
+        if(isset($iiif_imagehub_commands)) {
+            foreach($iiif_imagehub_commands as $key => $command) {
+                $cmd = str_replace('{ref}', $resourceId, $command);
+                run_command($cmd);
+            }
+        }
+        if(isset($iiif_imagehub_curl_calls)) {
+            foreach($iiif_imagehub_curl_calls as $key => $url) {
+                $url = str_replace('{ref}', $resourceId, $url);
+
+                $handle = curl_init($url);
+                curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, 0);
+                curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, 0);
+                curl_exec($handle);
+                curl_close($handle);
+            }
+        }
+    }
+
+
     # Delete any generated PTIF files associated with this resource when the resource is being deleted
     # Requires $resource_deletion_state to be set to NULL due to a bug in ResourceSpace where nothing is actually deleted otherwise
     # This bug resides in include/resource_functions.php:2015.
@@ -116,6 +142,7 @@
         $path = getPtifFilePath($ref);
         if(file_exists($path)) {
             unlink($path);
+            executeImagehubCommands(ref);
         }
     }
 
@@ -144,11 +171,13 @@
             $oldFile = getPtifFilePath($ref, $iiif_ptif_private_folder);
             if(file_exists($oldFile)) {
                 rename($oldFile, getPtifFilePath($ref));
+                executeImagehubCommands($ref);
             }
         } else {
             $oldFile = getPtifFilePath($ref, $iiif_ptif_public_folder);
             if(file_exists($oldFile)) {
                 rename($oldFile, getPtifFilePath($ref));
+                executeImagehubCommands($ref);
             }
         }
 

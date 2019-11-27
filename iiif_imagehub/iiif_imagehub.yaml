@@ -1,6 +1,0 @@
-name    : iiif_imagehub
-author  : Michiel Hebben
-version : 1.0
-desc    : Executes command line calls to the Imagehub to import data from the Datahub and generate IIIf manifests on file upload
-category: system
-default_priority: 2
