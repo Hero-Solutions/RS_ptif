@@ -199,7 +199,7 @@
             curl_close($handle);
             if($httpCode == 200) {
                 foreach($iiif_imagehub_viewers as $key => $viewer) {
-                    $url = str_replace('{manifest_url}', urlencode($url), $viewer);
+                    $url = str_replace('{manifest_url}', $url, $viewer);
                     echo '<p><a href=' . $url . '>View in ' . $key . '</a></p>';
                 }
             } else {
