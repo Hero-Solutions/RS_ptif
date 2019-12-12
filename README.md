@@ -52,10 +52,11 @@ $iiif_imagehub_manifest_url = 'https://imagehub.kmska.be/public/iiif/2/{ref}/man
 
 # Clickable URLs to be shown above the preview image in ResourceSpace.
 # {manifest_url} will be automatically replaced by the manifest URL as defined in the line above by the plugin.
+# We need to pass through the Imagehub authenticator first (which will redirect to the viewer through the 'url' GET parameter) when manifests or images are not publicly accessible.
 $iiif_imagehub_viewers = array(
-    'Universal Viewer' => 'https://imagehub.kmska.be/uv/index.php?manifest={manifest_url}',
-    'Mirador'          => 'https://imagehub.kmska.be/mirador/index.php?manifest={manifest_url}',
-    'Mirador V3'       => 'https://imagehub.kmska.be/mirador/3/index.php?manifest={manifest_url}'
+    'Universal Viewer' => 'https://imagehub.kmska.local/authenticate?url=https://imagehub.kmska.be/uv/index.php?manifest={manifest_url}',
+    'Mirador'          => 'https://imagehub.kmska.local/authenticate?url=https://imagehub.kmska.be/mirador/index.php?manifest={manifest_url}',
+    'Mirador V3'       => 'https://imagehub.kmska.local/authenticate?url=https://imagehub.kmska.be/mirador/3/index.php?manifest={manifest_url}'
 );
 
 
