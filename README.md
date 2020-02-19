@@ -85,7 +85,7 @@ $iiif_ptif_public_folder = 'public/';
 $iiif_ptif_commands = array(
     # vips cannot properly handle psb, so we need to use convert instead.
     array(
-        'extensions'   => array('psb'),
+        'extensions'   => array('jpg', 'jpeg', 'psb'),
         'command'      => 'convert',
         'arguments'    => '-define tiff:tile-geometry=256x256 -compress jpeg -quality 100 -depth 8',
         'dest_prefix'  => 'ptif:',
