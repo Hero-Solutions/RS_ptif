@@ -88,19 +88,19 @@
         $destPath = escapeshellarg($destPath);
 
         # Append prefix to the output filename if needed
-        if(in_array('dest_prefix', $command)) {
+        if(array_key_exists('dest_prefix', $command)) {
             $destPath = $command['dest_prefix'] . $destPath;
         }
 
         # Append postfix to the output filename if needed
-        if(in_array('dest_postfix', $command)) {
+        if(array_key_exists('dest_postfix', $command)) {
             $destPath = $destPath . $command['dest_postfix'];
         }
 
         $sourcePath = escapeshellarg($sourcePath);
 
         # Append the arguments to the command
-        if(in_array('arguments', $command)) {
+        if(array_key_exists('arguments', $command)) {
             $sourcePath = $command['arguments'] . ' ' . $sourcePath;
         }
 
@@ -142,7 +142,7 @@
         $path = getPtifFilePath($ref);
         if(file_exists($path)) {
             unlink($path);
-            executeImagehubCommands(ref);
+            executeImagehubCommands($ref);
         }
     }
 
