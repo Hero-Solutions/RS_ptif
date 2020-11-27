@@ -66,16 +66,12 @@
         $public = false;
         if($iiif_ptif_public_key != NULL && $iiif_ptif_public_folder != null) {
             $data = get_resource_field_data($ref);
-
             foreach($data as $field) {
                 if ($field['name'] == $iiif_ptif_public_key) {
-                    $expl = explode(',', $field['value']);
-                    foreach ($expl as $val) {
-                        if ($val == $iiif_ptif_public_value) {
-                            $public = true;
-                            break;
-                        }
+                    if(strpos($field['value'], $iiif_ptif_public_value) !== false) {
+                        $public = true;
                     }
+                    break;
                 }
             }
         }
@@ -166,7 +162,6 @@
     function movePtifToCorrectFolder($ref)
     {
         global $iiif_ptif_public_folder, $iiif_ptif_private_folder;
-
         if(isPublicImage($ref)) {
             $oldFile = getPtifFilePath($ref, $iiif_ptif_private_folder);
             if(file_exists($oldFile)) {
