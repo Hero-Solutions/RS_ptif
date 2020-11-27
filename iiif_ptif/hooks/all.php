@@ -153,9 +153,9 @@
     # the application that performed the API call should perform a do_search call after, which will trigger this function
     function HookIiif_ptifAllBeforereturnresults($result, $archive)
     {
-        foreach($result as $resource) {
-            movePtifToCorrectFolder($resource['ref']);
-        }
+//        foreach($result as $resource) {
+//            movePtifToCorrectFolder($resource['ref']);
+//        }
     }
 
     # Move the PTIF to the correct public/private folder if needed
