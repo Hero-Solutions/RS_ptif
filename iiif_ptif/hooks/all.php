@@ -23,13 +23,13 @@
             # Find the appropriate command based on the extension
             else if(in_array($extension, $command['extensions'])) {
                 $processed = true;
-                executeConversion($command, $sourcePath, $destPath);
+                executeConversion($command, $sourcePath, $destPath, $resourceId);
             }
         }
 
         # If no appropriate command was found based on the extension, use the catchall command
         if(!$processed) {
-            executeConversion($catchallCommand, $sourcePath, $destPath);
+            executeConversion($catchallCommand, $sourcePath, $destPath, $resourceId);
         }
 
         executeImagehubCommands($resourceId);
@@ -66,20 +66,42 @@
         $public = false;
         if($iiif_ptif_public_key != NULL && $iiif_ptif_public_folder != null) {
             $data = get_resource_field_data($ref);
+
             foreach($data as $field) {
                 if ($field['name'] == $iiif_ptif_public_key) {
-                    if(strpos($field['value'], $iiif_ptif_public_value) !== false) {
-                        $public = true;
+                    $expl = explode(',', $field['value']);
+                    foreach ($expl as $val) {
+                        if ($val == $iiif_ptif_public_value) {
+                            $public = true;
+                            break;
+                        }
                     }
-                    break;
                 }
             }
         }
         return $public;
     }
 
+    function getPtifQuality($ref)
+    {
+        global $iiif_ptif_quality_field;
+
+        $data = get_resource_field_data($ref);
+        foreach($data as $field) {
+            if ($field['name'] == $iiif_ptif_quality_field) {
+                if(!empty($field['value'])) {
+                    if($field['value'] == '100' || preg_match('/[1-9][0-9]?/', $field['value'])) {
+                        return $field['value'];
+                    }
+                }
+                break;
+            }
+        }
+        return '100';
+    }
+
     # Execute the actual image conversion
-    function executeConversion($command, $sourcePath, $destPath)
+    function executeConversion($command, $sourcePath, $destPath, $resourceId)
     {
         $destPath = escapeshellarg($destPath);
 
@@ -101,6 +123,8 @@
         }
 
         $cmd = $command['command'] . ' ' . $sourcePath . ' ' . $destPath;
+
+        $cmd = str_replace('#ptif_quality#', getPtifQuality($resourceId), $cmd);
 
         run_command($cmd);
     }
@@ -153,6 +177,7 @@
     # the application that performed the API call should perform a do_search call after, which will trigger this function
     function HookIiif_ptifAllBeforereturnresults($result, $archive)
     {
+// Currently commented out, because this causes massive performance issues with large amounts of resources
 //        foreach($result as $resource) {
 //            movePtifToCorrectFolder($resource['ref']);
 //        }
@@ -162,6 +187,7 @@
     function movePtifToCorrectFolder($ref)
     {
         global $iiif_ptif_public_folder, $iiif_ptif_private_folder;
+
         if(isPublicImage($ref)) {
             $oldFile = getPtifFilePath($ref, $iiif_ptif_private_folder);
             if(file_exists($oldFile)) {
