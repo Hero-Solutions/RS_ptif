@@ -69,12 +69,9 @@
 
             foreach($data as $field) {
                 if ($field['name'] == $iiif_ptif_public_key) {
-                    $expl = explode(',', $field['value']);
-                    foreach ($expl as $val) {
-                        if ($val == $iiif_ptif_public_value) {
-                            $public = true;
-                            break;
-                        }
+                    if(strpos($field['value'], $iiif_ptif_public_value) !== false) {
+                        $public = true;
+                        break;
                     }
                 }
             }
