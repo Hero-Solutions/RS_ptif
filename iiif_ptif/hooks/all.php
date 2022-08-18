@@ -6,6 +6,10 @@
     {
         global $iiif_ptif_commands;
 
+        if(!isGeneratePtif($resourceId)) {
+            return;
+        }
+
         # Get the path to the original image. We need to select the extension from the database for this
         $extension = sql_value("SELECT file_extension value FROM resource WHERE ref = '" . escape_check($resourceId) . "'", 'tif');
         $sourcePath = get_resource_path($resourceId, true, '', true, $extension);
@@ -97,6 +101,22 @@
         return '100';
     }
 
+    function isGeneratePtif($ref)
+    {
+        global $iiif_generate_ptif_field;
+
+        $data = get_resource_field_data($ref);
+        foreach($data as $field) {
+            if ($field['name'] == $iiif_generate_ptif_field) {
+                if(!empty($field['value'])) {
+                    return true;
+                }
+                break;
+            }
+        }
+        return false;
+    }
+
     # Execute the actual image conversion
     function executeConversion($command, $sourcePath, $destPath, $resourceId)
     {
@@ -164,10 +184,27 @@
     }
 
     # In case the public use field has updated, move the PTIF to the correct subdirectory
+    # If the 'Generate PTIF' field has updated, generate or delete it depending on the value
     # WARNING: does not trigger when a field is edited through the ResourceSpace API
     function HookIiif_ptifAllAftersaveresourcedata($ref, $nodes_to_add, $nodes_to_remove, $autosave_field)
     {
-        movePtifToCorrectFolder($ref);
+        if(!isGeneratePtif($ref)) {
+            $path = getPtifFilePath($ref);
+            if(file_exists($path)) {
+                unlink($path);
+                executeImagehubCommands($ref);
+            }
+        } else {
+            if(movePtifToCorrectFolder($ref)) {
+                executeImagehubCommands($ref);
+            } else {
+                $path = getPtifFilePath($ref);
+                if(!file_exists($path)) {
+                    HookIiif_ptifAllUploadfilesuccess($ref);
+                    executeImagehubCommands($ref);
+                }
+            }
+        }
     }
 
     # A hackish way to move the PTIF to the correct subdirectory in case the public use field has updated through the API,
@@ -189,15 +226,16 @@
             $oldFile = getPtifFilePath($ref, $iiif_ptif_private_folder);
             if(file_exists($oldFile)) {
                 rename($oldFile, getPtifFilePath($ref));
-                executeImagehubCommands($ref);
+                return true;
             }
         } else {
             $oldFile = getPtifFilePath($ref, $iiif_ptif_public_folder);
             if(file_exists($oldFile)) {
                 rename($oldFile, getPtifFilePath($ref));
-                executeImagehubCommands($ref);
+                return true;
             }
         }
+        return false;
     }
 
     # Renders clickable URL's to IIIF viewers above the preview image when opening a resource
