@@ -256,7 +256,7 @@
             if($httpCode == 200) {
                 foreach($iiif_imagehub_viewers as $key => $viewer) {
                     $viewerUrl = str_replace('{manifest_url}', $url, $viewer);
-                    echo '<p><a href="' . $viewerUrl . '" target="_blank">View in ' . $key . '</a></p>';
+                    echo '<p><a href="' . $viewerUrl . '" target="_blank">View ' . $key . '</a></p>';
                 }
             } else {
                 foreach($iiif_imagehub_viewers as $key => $viewer) {
