@@ -186,22 +186,27 @@
     # In case the public use field has updated, move the PTIF to the correct subdirectory
     # If the 'Generate PTIF' field has updated, generate or delete it depending on the value
     # WARNING: does not trigger when a field is edited through the ResourceSpace API
-    function HookIiif_ptifAllAftersaveresourcedata($ref, $nodes_to_add, $nodes_to_remove, $autosave_field)
+    function HookIiif_ptifAllAftersaveresourcedata($refs, $nodes_to_add, $nodes_to_remove, $autosave_field)
     {
-        if(!isGeneratePtif($ref)) {
-            $path = getPtifFilePath($ref);
-            if(file_exists($path)) {
-                unlink($path);
-                executeImagehubCommands($ref);
-            }
-        } else {
-            if(movePtifToCorrectFolder($ref)) {
-                executeImagehubCommands($ref);
-            } else {
+        if(!is_array($refs)) {
+            $refs = array($refs);
+        }
+        foreach($refs as $ref) {
+            if(!isGeneratePtif($ref)) {
                 $path = getPtifFilePath($ref);
-                if(!file_exists($path)) {
-                    HookIiif_ptifAllUploadfilesuccess($ref);
+                if(file_exists($path)) {
+                    unlink($path);
                     executeImagehubCommands($ref);
+                }
+            } else {
+                if(movePtifToCorrectFolder($ref)) {
+                    executeImagehubCommands($ref);
+                } else {
+                    $path = getPtifFilePath($ref);
+                    if(!file_exists($path)) {
+                        HookIiif_ptifAllUploadfilesuccess($ref);
+                        executeImagehubCommands($ref);
+                    }
                 }
             }
         }
