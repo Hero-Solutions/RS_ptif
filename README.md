@@ -12,6 +12,25 @@ This project requires the following dependencies:
 * [ResourceSpace](https://www.resourcespace.com/get) >= 9.1
 * The command-line tools [convert](https://imagemagick.org/) or [vips](https://github.com/libvips/libvips) (possibly both), depending on which image conversion tool you need to use, as defined in the config below
 
+## Considerations
+
+If the CSV upload plugin is enabled, then you need to add the following lines in `include/node_functions.php` inthe ResourceSpace source code (at the end of each function, before the `return` statement if there is one), this will need to be done with every update of ResourceSpace. Perhaps this issue should be raised to the ResourceSpace developers so it can be integrated into the ResourceSpace codebase.
+
+In `add_resource_nodes`, `delete_resource_nodes` and `delete_all_resource_nodes`:
+```
+hook('update_resource_node', '', array($resourceid));
+```
+In `add_resource_nodes_multi` and `delete_resource_nodes_multi`:
+```
+foreach($resources as $resourceid) {
+    hook('update_resource_node', '', array($resourceid));
+}
+```
+In `copy_resource_nodes`:
+```
+hook('update_resource_node', '', array($resourceto));
+```
+
 # Usage
 
 In order to make use of this plugin, the ``iiif_ptif/`` folder should be copied to the ``plugins/`` folder of your ResourceSpace installation and activated by the system administrator (System -> Manage plugins, then expand the 'System' plugins and select the iiif_ptif plugin).

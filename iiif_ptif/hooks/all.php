@@ -188,6 +188,11 @@
         HookIiif_ptifAllAftersaveresourcedata(array($ref), null, null, null);
     }
 
+    function HookIiif_ptifAllUpdate_resource_node($ref)
+    {
+        HookIiif_ptifAllAftersaveresourcedata(array($ref), null, null, null);
+    }
+
     # In case the public use field has updated, move the PTIF to the correct subdirectory
     # If the 'Generate PTIF' field has updated, generate or delete it depending on the value
     # WARNING: does not trigger when a field is edited through the ResourceSpace API
