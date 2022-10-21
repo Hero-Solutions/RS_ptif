@@ -39,6 +39,12 @@
         executeImagehubCommands($resourceId);
     }
 
+    # Execute conversion when image is being replaced or edited with transform tools
+    function HookIiif_ptifAllAdditional_replace_existing($ref, $log_ref)
+    {
+        HookIiif_ptifAllUploadfilesuccess($ref);
+    }
+
     # Return the path where to store PTIF files in when uploading a new image
     function getPtifFilePath($ref, $forcedFolder = NULL)
     {
