@@ -11,7 +11,7 @@
         }
 
         # Get the path to the original image. We need to select the extension from the database for this
-        $extension = sql_value("SELECT file_extension value FROM resource WHERE ref = '" . escape_check($resourceId) . "'", 'tif');
+        $extension = ps_value("SELECT file_extension value FROM resource WHERE ref=?", array("s",escape_check($resourceId)), 'tif');
         $sourcePath = get_resource_path($resourceId, true, '', true, $extension);
         $destPath = getPtifFilePath($resourceId);
 
