@@ -263,7 +263,9 @@
     # Configure the $iiif_ptif_viewers field in config.php to generate appropriate URL's
     function HookIiif_ptifAllRenderbeforeresourceview($resource)
     {
-        global $iiif_imagehub_manifest_url, $iiif_imagehub_viewers;
+        global $iiif_imagehub_manifest_url, $iiif_imagehub_viewers, $iiif_ptif_public_folder, $iiif_ptif_private_folder;
+        $publicFolder = rtrim($iiif_ptif_public_folder, '/');
+        $privateFolder = rtrim($iiif_ptif_private_folder, '/');
 
         if(isset($iiif_imagehub_manifest_url) && isset($iiif_imagehub_viewers)) {
             $url = str_replace('{ref}', $resource['ref'], $iiif_imagehub_manifest_url);
@@ -277,6 +279,12 @@
             if($httpCode == 200) {
                 foreach($iiif_imagehub_viewers as $key => $viewer) {
                     $viewerUrl = str_replace('{manifest_url}', $url, $viewer);
+                    $viewerUrl = str_replace('{ref}', $resource['ref'], $viewerUrl);
+                    if(isPublicImage($resource['ref'])) {
+                        $viewerUrl = str_replace('{dir}', $publicFolder, $viewerUrl);
+                    } else {
+                        $viewerUrl = str_replace('{dir}', $privateFolder, $viewerUrl);
+                    }
                     echo '<p><a href="' . $viewerUrl . '" target="_blank">View ' . $key . '</a></p>';
                 }
             } else {
