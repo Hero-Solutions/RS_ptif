@@ -263,7 +263,9 @@
     # Configure the $iiif_ptif_viewers field in config.php to generate appropriate URL's
     function HookIiif_ptifAllRenderbeforeresourceview($resource)
     {
-        global $iiif_imagehub_manifest_v2_url, $iiif_imagehub_manifest_url, $iiif_imagehub_viewers;
+        global $iiif_imagehub_manifest_v2_url, $iiif_imagehub_manifest_url, $iiif_imagehub_viewers, $iiif_ptif_public_folder, $iiif_ptif_private_folder;
+        $publicFolder = rtrim($iiif_ptif_public_folder, '/');
+        $privateFolder = rtrim($iiif_ptif_private_folder, '/');
 
         if(isset($iiif_imagehub_viewers)) {
             $urlV2 = null;
@@ -299,13 +301,28 @@
                     if($urlV2 === null) {
                         echo '<p>There is currently no working link to ' . $key . ' yet.</p>';
                     } else {
-                        echo '<p><a href="' . str_replace('{manifest_v2_url}', $urlV2, $viewer) . '" target="_blank">View ' . $key . '</a></p>';
+                        $viewerUrl = str_replace('{manifest_v2_url}', $urlV2, $viewer);
+                        $viewerUrl = str_replace('{ref}', $resource['ref'], $viewerUrl);
+                        if(isPublicImage($resource['ref'])) {
+                            $viewerUrl = str_replace('{dir}', $publicFolder, $viewerUrl);
+                        } else {
+                            $viewerUrl = str_replace('{dir}', $privateFolder, $viewerUrl);
+                        }
+
+                        echo '<p><a href="' . $viewerUrl . '" target="_blank">View ' . $key . '</a></p>';
                     }
                 } else if(strpos($viewer, '{manifest_url}') !== false) {
                     if($urlV3 === null) {
                         echo '<p>There is currently no working link to ' . $key . ' yet.</p>';
                     } else {
-                        echo '<p><a href="' . str_replace('{manifest_url}', $urlV3, $viewer) . '" target="_blank">View ' . $key . '</a></p>';
+                        $viewerUrl = str_replace('{manifest_url}', $urlV3, $viewer);
+                        $viewerUrl = str_replace('{ref}', $resource['ref'], $viewerUrl);
+                        if(isPublicImage($resource['ref'])) {
+                            $viewerUrl = str_replace('{dir}', $publicFolder, $viewerUrl);
+                        } else {
+                            $viewerUrl = str_replace('{dir}', $privateFolder, $viewerUrl);
+                        }
+                        echo '<p><a href="' . $viewerUrl . '" target="_blank">View ' . $key . '</a></p>';
                     }
                 } else {
                     echo '<p><a href="' . $viewer . '" target="_blank">View ' . $key . '</a></p>';
