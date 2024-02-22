@@ -263,25 +263,52 @@
     # Configure the $iiif_ptif_viewers field in config.php to generate appropriate URL's
     function HookIiif_ptifAllRenderbeforeresourceview($resource)
     {
-        global $iiif_imagehub_manifest_url, $iiif_imagehub_viewers;
+        global $iiif_imagehub_manifest_v2_url, $iiif_imagehub_manifest_url, $iiif_imagehub_viewers;
 
-        if(isset($iiif_imagehub_manifest_url) && isset($iiif_imagehub_viewers)) {
-            $url = str_replace('{ref}', $resource['ref'], $iiif_imagehub_manifest_url);
-            $handle = curl_init($url);
-            curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, 0);
-            curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($handle, CURLOPT_NOBODY, true);
-            $response = curl_exec($handle);
-            $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
-            curl_close($handle);
-            if($httpCode == 200) {
-                foreach($iiif_imagehub_viewers as $key => $viewer) {
-                    $viewerUrl = str_replace('{manifest_url}', $url, $viewer);
-                    echo '<p><a href="' . $viewerUrl . '" target="_blank">View ' . $key . '</a></p>';
+        if(isset($iiif_imagehub_viewers)) {
+            $urlV2 = null;
+            $urlV3 = null;
+            if(isset($iiif_imagehub_manifest_v2_url)) {
+                $url = str_replace('{ref}', $resource['ref'], $iiif_imagehub_manifest_v2_url);
+                $handle = curl_init($url);
+                curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, 0);
+                curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, 0);
+                curl_setopt($handle, CURLOPT_NOBODY, true);
+                $response = curl_exec($handle);
+                $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+                curl_close($handle);
+                if($httpCode == 200) {
+                    $urlV2 = $url;
                 }
-            } else {
-                foreach($iiif_imagehub_viewers as $key => $viewer) {
-                    echo '<p>There is currently no working link to ' . $key . ' yet.</p>';
+            }
+            if(isset($iiif_imagehub_manifest_url)) {
+                $url = str_replace('{ref}', $resource['ref'], $iiif_imagehub_manifest_url);
+                $handle = curl_init($url);
+                curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, 0);
+                curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, 0);
+                curl_setopt($handle, CURLOPT_NOBODY, true);
+                $response = curl_exec($handle);
+                $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+                curl_close($handle);
+                if($httpCode == 200) {
+                    $urlV3 = $url;
+                }
+            }
+            foreach($iiif_imagehub_viewers as $key => $viewer) {
+                if(strpos($viewer, '{manifest_v2_url}') !== false) {
+                    if($urlV2 === null) {
+                        echo '<p>There is currently no working link to ' . $key . ' yet.</p>';
+                    } else {
+                        echo '<p><a href="' . str_replace('{manifest_v2_url}', $urlV2, $viewer) . '" target="_blank">View ' . $key . '</a></p>';
+                    }
+                } else if(strpos($viewer, '{manifest_url}') !== false) {
+                    if($urlV3 === null) {
+                        echo '<p>There is currently no working link to ' . $key . ' yet.</p>';
+                    } else {
+                        echo '<p><a href="' . str_replace('{manifest_url}', $urlV3, $viewer) . '" target="_blank">View ' . $key . '</a></p>';
+                    }
+                } else {
+                    echo '<p><a href="' . $viewer . '" target="_blank">View ' . $key . '</a></p>';
                 }
             }
         }
