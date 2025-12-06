@@ -2,18 +2,18 @@
     # This plugin generates Tiled Pyramidal TIFF files when uploading a new image
 
     # Convert image to PTIF after the upload is successful
-    function HookIiif_ptifAllUploadfilesuccess($resourceId)
+    function HookIiif_ptifAllUploadfilesuccess($resource_ref, $uploadparams = [], $request = [])
     {
         global $iiif_ptif_commands;
 
-        if(!isGeneratePtif($resourceId)) {
+        if(!isGeneratePtif($resource_ref)) {
             return;
         }
 
         # Get the path to the original image. We need to select the extension from the database for this
-        $extension = ps_value("SELECT file_extension value FROM resource WHERE ref=?", array("s",escape_check($resourceId)), 'tif');
-        $sourcePath = get_resource_path($resourceId, true, '', true, $extension);
-        $destPath = getPtifFilePath($resourceId);
+        $extension = ps_value("SELECT file_extension value FROM resource WHERE ref=?", array("s",escape_check($resource_ref)), 'tif');
+        $sourcePath = get_resource_path($resource_ref, true, '', true, $extension);
+        $destPath = getPtifFilePath($resource_ref);
 
         $catchallCommand = null;
         $processed = false;
@@ -27,16 +27,16 @@
             # Find the appropriate command based on the extension
             else if(in_array($extension, $command['extensions'])) {
                 $processed = true;
-                executeConversion($command, $sourcePath, $destPath, $resourceId);
+                executeConversion($command, $sourcePath, $destPath, $resource_ref);
             }
         }
 
         # If no appropriate command was found based on the extension, use the catchall command
         if(!$processed) {
-            executeConversion($catchallCommand, $sourcePath, $destPath, $resourceId);
+            executeConversion($catchallCommand, $sourcePath, $destPath, $resource_ref);
         }
 
-        executeImagehubCommands($resourceId);
+        executeImagehubCommands($resource_ref);
     }
 
     # Execute conversion when image is being replaced or edited with transform tools
@@ -124,7 +124,7 @@
     }
 
     # Execute the actual image conversion
-    function executeConversion($command, $sourcePath, $destPath, $resourceId)
+    function executeConversion($command, $sourcePath, $destPath, $resource_ref)
     {
         $destPath = escapeshellarg($destPath);
 
@@ -147,25 +147,25 @@
 
         $cmd = $command['command'] . ' ' . $sourcePath . ' ' . $destPath;
 
-        $cmd = str_replace('#ptif_quality#', getPtifQuality($resourceId), $cmd);
+        $cmd = str_replace('#ptif_quality#', getPtifQuality($resource_ref), $cmd);
 
         run_command($cmd);
     }
 
     # Perform either command line or cURL calls to the Imagehub to import data from the datahub and generate IIIF manifests
-    function executeImagehubCommands($resourceId)
+    function executeImagehubCommands($resource_ref)
     {
         global $iiif_imagehub_commands, $iiif_imagehub_curl_calls;
 
         if(isset($iiif_imagehub_commands)) {
             foreach($iiif_imagehub_commands as $key => $command) {
-                $cmd = str_replace('{ref}', $resourceId, $command);
+                $cmd = str_replace('{ref}', $resource_ref, $command);
                 run_command($cmd);
             }
         }
         if(isset($iiif_imagehub_curl_calls)) {
             foreach($iiif_imagehub_curl_calls as $key => $url) {
-                $url = str_replace('{ref}', $resourceId, $url);
+                $url = str_replace('{ref}', $resource_ref, $url);
 
                 $handle = curl_init($url);
                 curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, 0);
