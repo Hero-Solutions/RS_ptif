@@ -264,70 +264,91 @@
     function HookIiif_ptifAllRenderbeforeresourceview($resource)
     {
         global $iiif_imagehub_manifest_v2_url, $iiif_imagehub_manifest_url, $iiif_imagehub_viewers, $iiif_ptif_public_folder, $iiif_ptif_private_folder;
-        $publicFolder = rtrim($iiif_ptif_public_folder, '/');
-        $privateFolder = rtrim($iiif_ptif_private_folder, '/');
 
-        if(isset($iiif_imagehub_viewers)) {
-            $urlV2 = null;
-            $urlV3 = null;
-            if(isset($iiif_imagehub_manifest_v2_url)) {
-                $url = str_replace('{ref}', $resource['ref'], $iiif_imagehub_manifest_v2_url);
-                $handle = curl_init($url);
-                curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, 0);
-                curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, 0);
-                curl_setopt($handle, CURLOPT_NOBODY, true);
-                $response = curl_exec($handle);
-                $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
-                curl_close($handle);
-                if($httpCode == 200) {
-                    $urlV2 = $url;
-                }
-            }
-            if(isset($iiif_imagehub_manifest_url)) {
-                $url = str_replace('{ref}', $resource['ref'], $iiif_imagehub_manifest_url);
-                $handle = curl_init($url);
-                curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, 0);
-                curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, 0);
-                curl_setopt($handle, CURLOPT_NOBODY, true);
-                $response = curl_exec($handle);
-                $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
-                curl_close($handle);
-                if($httpCode == 200) {
-                    $urlV3 = $url;
-                }
-            }
-            foreach($iiif_imagehub_viewers as $key => $viewer) {
-                if(strpos($viewer, '{manifest_v2_url}') !== false) {
-                    if($urlV2 === null) {
-                        echo '<p>There is currently no working link to ' . $key . ' yet.</p>';
-                    } else {
-                        $viewerUrl = str_replace('{manifest_v2_url}', $urlV2, $viewer);
-                        $viewerUrl = str_replace('{ref}', $resource['ref'], $viewerUrl);
-                        if(isPublicImage($resource['ref'])) {
-                            $viewerUrl = str_replace('{dir}', $publicFolder, $viewerUrl);
-                        } else {
-                            $viewerUrl = str_replace('{dir}', $privateFolder, $viewerUrl);
-                        }
-
-                        echo '<p><a href="' . $viewerUrl . '" target="_blank">View ' . $key . '</a></p>';
-                    }
-                } else if(strpos($viewer, '{manifest_url}') !== false) {
-                    if($urlV3 === null) {
-                        echo '<p>There is currently no working link to ' . $key . ' yet.</p>';
-                    } else {
-                        $viewerUrl = str_replace('{manifest_url}', $urlV3, $viewer);
-                        $viewerUrl = str_replace('{ref}', $resource['ref'], $viewerUrl);
-                        if(isPublicImage($resource['ref'])) {
-                            $viewerUrl = str_replace('{dir}', $publicFolder, $viewerUrl);
-                        } else {
-                            $viewerUrl = str_replace('{dir}', $privateFolder, $viewerUrl);
-                        }
-                        echo '<p><a href="' . $viewerUrl . '" target="_blank">View ' . $key . '</a></p>';
-                    }
-                } else {
-                    echo '<p><a href="' . $viewer . '" target="_blank">View ' . $key . '</a></p>';
-                }
-            }
+        if(!isset($resource['ref']) || !isset($iiif_imagehub_viewers) || !is_array($iiif_imagehub_viewers)) {
+            return;
         }
+
+        $resource_ref = $resource['ref'];
+        $publicFolder = isset($iiif_ptif_public_folder) ? rtrim($iiif_ptif_public_folder, '/') : '';
+        $privateFolder = isset($iiif_ptif_private_folder) ? rtrim($iiif_ptif_private_folder, '/') : '';
+        $isPublic = isPublicImage($resource_ref);
+
+        $urlV2 = isset($iiif_imagehub_manifest_v2_url) ? str_replace('{ref}', $resource_ref, $iiif_imagehub_manifest_v2_url) : null;
+        $urlV3 = isset($iiif_imagehub_manifest_url) ? str_replace('{ref}', $resource_ref, $iiif_imagehub_manifest_url) : null;
+
+        foreach($iiif_imagehub_viewers as $key => $viewer) {
+            $viewerUrl = null;
+
+            if(strpos($viewer, '{manifest_v2_url}') !== false) {
+                if(iiif_ptif_manifest_is_available($urlV2)) {
+                    $viewerUrl = str_replace('{manifest_v2_url}', $urlV2, $viewer);
+                }
+            } else if(strpos($viewer, '{manifest_url}') !== false) {
+                if(iiif_ptif_manifest_is_available($urlV3)) {
+                    $viewerUrl = str_replace('{manifest_url}', $urlV3, $viewer);
+                }
+            } else {
+                $viewerUrl = $viewer;
+            }
+
+            if($viewerUrl === null) {
+                iiif_ptif_render_unavailable_viewer($key);
+                continue;
+            }
+
+            $viewerUrl = str_replace('{ref}', $resource_ref, $viewerUrl);
+            $viewerUrl = str_replace('{dir}', $isPublic ? $publicFolder : $privateFolder, $viewerUrl);
+
+            iiif_ptif_render_viewer_link($key, $viewerUrl);
+        }
+    }
+
+    function iiif_ptif_manifest_is_available($url)
+    {
+        global $iiif_imagehub_verify_manifest_urls;
+
+        if(empty($url)) {
+            return false;
+        }
+
+        if(empty($iiif_imagehub_verify_manifest_urls)) {
+            return true;
+        }
+
+        if(!function_exists('curl_init')) {
+            return false;
+        }
+
+        $handle = curl_init($url);
+        if($handle === false) {
+            return false;
+        }
+
+        curl_setopt_array($handle, array(
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_SSL_VERIFYPEER => 0,
+            CURLOPT_NOBODY => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT_MS => 500,
+            CURLOPT_TIMEOUT_MS => 1000,
+            CURLOPT_NOSIGNAL => true,
+        ));
+
+        $response = curl_exec($handle);
+        $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+        curl_close($handle);
+
+        return $response !== false && $httpCode >= 200 && $httpCode < 300;
+    }
+
+    function iiif_ptif_render_viewer_link($key, $viewerUrl)
+    {
+        echo '<p><a href="' . htmlspecialchars($viewerUrl, ENT_QUOTES, 'UTF-8') . '" target="_blank" rel="noopener noreferrer">View ' . htmlspecialchars($key, ENT_QUOTES, 'UTF-8') . '</a></p>';
+    }
+
+    function iiif_ptif_render_unavailable_viewer($key)
+    {
+        echo '<p>There is currently no working link to ' . htmlspecialchars($key, ENT_QUOTES, 'UTF-8') . ' yet.</p>';
     }
 ?>
